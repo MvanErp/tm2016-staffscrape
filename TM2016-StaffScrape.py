@@ -6,13 +6,17 @@ import time
 import sys
 import os
 import re 
+import logging
+
+
+logging.basicConfig(filename='logger.log',level=logging.DEBUG)
 
 fname = sys.argv[1] 
 
 # Open the file with the urls and read it in 
 with open(fname) as f:
     content = f.readlines()
-f.close() 
+f.close()
     
 # Loop through the urls and gather the follow up urls 
 for line in content:
@@ -20,8 +24,37 @@ for line in content:
     elements = line.split('\t')
     url = elements[1]
     try:
-        html = urlopen(url).read()
-        souped = BeautifulSoup(html, 'html.parser')
+
+        conn = urlopen(url)
+        code = conn.getcode()
+        logging.info('Status Code: {}'.format(code))
+        source = urlopen(url)
+        if source.code == 200:
+            content_type = conn.headers['Content-type']
+            logging.info(content_type)
+
+            charset = 'utf8'
+            if content_type.startswith('text/html'):
+                if content_type.find('charset=') != -1:  # probe charset
+                    charset = content_type[content_type.find('charset=') + len('charset='):]
+                try:
+                    html = conn.read().decode(charset)  # need employ decent approach to detect encoding
+                except UnicodeDecodeError:
+                    html = None
+            else:  # image/png, etc.
+                logging.info('skip none html contents')
+                html = None
+        else:  # 404, 307, etc.
+            html = None
+
+
+
+
+        if html:
+            souped = BeautifulSoup(html, 'html.parser')
+        else:
+            logging.info('empty html var')
+            sys.exit()
         links_to_follow = {}
         links_to_follow[url] = 1
         # If this is the first website in a particular research group, create a dir for it
