@@ -23,6 +23,7 @@ for line in content:
         html = urlopen(url).read()
         souped = BeautifulSoup(html, 'html.parser')
         links_to_follow = {}
+        links_to_follow[url] = 1
         # If this is the first website in a particular research group, create a dir for it
         groupname = elements[0]
         if not os.path.exists(groupname):
