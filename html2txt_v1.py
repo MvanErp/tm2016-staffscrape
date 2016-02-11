@@ -4,8 +4,27 @@ from urllib2 import Request, urlopen, URLError, HTTPError
 from bs4 import BeautifulSoup
 import codecs
 import glob
+import os
+import fnmatch
+import sys
+import bs4.dammit as udet
 
-for name in glob.glob('copy/*/*/*.html'):
+DIR_NAME = 'Data'
+PATTERN = '*.html'
+
+def loadData(dir_name, pattern):
+    nohyphen_files = []
+    dir_names = []
+    for root, dirnames, filenames in os.walk(dir_name):
+        dir_names.append(dirnames)
+        for filename in fnmatch.filter(filenames, pattern):
+            nohyphen_files.append(os.path.join(root, filename))
+    return nohyphen_files, dir_names
+
+
+f_names, dir_names = loadData(DIR_NAME, PATTERN)
+
+for name in f_names:
     inputfile = name
     print name
     outputfile = inputfile[:-4] + 'txt'
@@ -13,8 +32,11 @@ for name in glob.glob('copy/*/*/*.html'):
     inputtext = ''
     with open(inputfile, 'r') as myfile:
         inputtext=myfile.read()
+    # print inputtext
     try:
-        soup = BeautifulSoup(inputtext.encode('UTF-8'), 'lxml')
+        x = udet.EncodingDetector(inputtext, is_html=True)
+        encs = list(x.encodings)
+        soup = BeautifulSoup(inputtext.decode(encs[0]), 'lxml')
         # kill all script and style elements
         for script in soup(["script", "style"]):
             script.extract()    # rip it out
@@ -35,7 +57,8 @@ for name in glob.glob('copy/*/*/*.html'):
             output = open(outputfile, 'w')
             output.write(text)
             output.close()
-    except:
-        pass
-    #print(text)
+    except UnicodeError, e:
+        print e
+        # sys.exit()
+#     #print(text)
 
