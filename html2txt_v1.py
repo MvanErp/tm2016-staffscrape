@@ -9,7 +9,7 @@ import fnmatch
 import sys
 import bs4.dammit as udet
 
-DIR_NAME = 'Data'
+DIR_NAME = '.'
 PATTERN = '*.html'
 
 def loadData(dir_name, pattern):
@@ -52,7 +52,7 @@ for name in f_names:
         text = '\n'.join(chunk for chunk in chunks if chunk)
 
         if len(text) > 2:
-            #print "yay!"
+            # print "yay!"
             text = text.encode('utf-8')
             output = open(outputfile, 'w')
             output.write(text)
