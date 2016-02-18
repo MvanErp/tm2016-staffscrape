@@ -9,7 +9,7 @@ import re
 import logging
 
 
-logging.basicConfig(filename='logger.log',level=logging.DEBUG)
+logging.basicConfig(filename='logger.log',level=logging.INFO)
 
 fname = sys.argv[1] 
 
@@ -73,7 +73,7 @@ for line in content:
                 links_to_follow[result] = 1
         # Now you've gathered the links you want to pull information from, so then you can start!         
         for link in links_to_follow:
-            print "Now requesting: " + link 
+            logging.info( "Now requesting: " + link )
             try:
                 page = urlopen(link).read()
                 pagename = re.sub(r'\W+', '', link)
@@ -82,16 +82,16 @@ for line in content:
                 f.write(page)
                 f.close()
             except URLError, e:
-                print 'No kittez. Got an error code:', e
+                logging.error('No kittez. Got an error code:', e)
             except HTTPError, e:
-                 print 'HTTPError = ', e
+                 logging.error('HTTPError = ', e)
             except Exception as e:
-                print "Unexpected error:", e
-            print "Slight delay of 5 seconds to not piss off any server"
+                logging.info("Unexpected error:", e)
+            logging.info("Slight delay of 5 seconds to not piss off any server")
             time.sleep(5)
     except URLError, e:
-        print 'No kittez. Got an error code:', e
+        logging.info( 'No kittez. Got an error code:', e)
     except HTTPError, e:
-         print 'HTTPError = ', e
+         logging.error( 'HTTPError = ', e)
     except Exception as e:
-        print "Unexpected error:", e
+        logging.error( "Unexpected error:", e)
