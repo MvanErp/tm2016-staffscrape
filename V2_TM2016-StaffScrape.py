@@ -1,6 +1,7 @@
 #!-*- coding: utf-8 -*-
 
 from urllib2 import Request, urlopen, URLError, HTTPError
+from urlparse import urljoin
 from bs4 import BeautifulSoup
 import time
 import sys
@@ -10,6 +11,24 @@ import logging
 
 
 logging.basicConfig(filename='logger.log',level=logging.INFO)
+
+valid_link_abs = 'http'
+valid_link_rel = {'/', '.'}
+
+def normalize_link(url, links):
+    """
+    handle absolute and relative links
+    :param url:
+    :param links:
+    :return:
+    """
+    valid_links = list()
+    for link in links:
+        if link.startswith(valid_link_abs):
+            valid_links.append(link)
+        elif link[0] in valid_link_rel:
+            valid_links.append(urljoin(url, link))
+    return valid_links
 
 fname = sys.argv[1] 
 
@@ -47,9 +66,6 @@ for line in content:
         else:  # 404, 307, etc.
             html = None
 
-
-
-
         if html:
             souped = BeautifulSoup(html, 'html.parser')
         else:
@@ -69,8 +85,13 @@ for line in content:
         # Find all the links in the page that you want to follow i.e. you only want to follow links on the same domain 
         for link in souped.find_all('a'):
             result = str(link.get('href'))
-            if url in result:
+            # print result
+            if not url in result:
                 links_to_follow[result] = 1
+        
+        links_to_follow = normalize_link(url, links_to_follow.keys())
+
+        # print links_to_follow
         # Now you've gathered the links you want to pull information from, so then you can start!         
         for link in links_to_follow:
             logging.info( "Now requesting: " + link )
