@@ -2,6 +2,7 @@
 
 from urllib2 import Request, urlopen, URLError, HTTPError
 from urlparse import urljoin
+import urlparse
 from bs4 import BeautifulSoup
 import time
 import sys
@@ -22,13 +23,21 @@ def normalize_link(url, links):
     :param links:
     :return:
     """
+    # print links
     valid_links = list()
     for link in links:
-        if link.startswith(valid_link_abs):
-            valid_links.append(link)
-        elif link[0] in valid_link_rel:
-            valid_links.append(urljoin(url, link))
+        # print urlparse.urlparse(link).netloc, '\t', urlparse.urlparse(url).netloc
+        netloc_other,netloc_base = urlparse.urlparse(link).netloc, urlparse.urlparse(url).netloc
+        # print link
+        # print netloc_base, netloc_other
+        if netloc_base.rfind(netloc_other) != -1:
+            print link
+            if link.startswith(valid_link_abs):
+                valid_links.append(link)
+            elif link in valid_link_rel:
+                valid_links.append(urljoin(url, link))
     return valid_links
+    # print url, '\t', valid_links
 
 fname = sys.argv[1] 
 
@@ -85,9 +94,7 @@ for line in content:
         # Find all the links in the page that you want to follow i.e. you only want to follow links on the same domain 
         for link in souped.find_all('a'):
             result = str(link.get('href'))
-            # print result
-            if not url in result:
-                links_to_follow[result] = 1
+            links_to_follow[result] = 1
         
         links_to_follow = normalize_link(url, links_to_follow.keys())
 
@@ -103,16 +110,16 @@ for line in content:
                 f.write(page)
                 f.close()
             except URLError, e:
-                logging.error('No kittez. Got an error code:', e)
+                logging.error('No kittez. Got an error code: {}'.format(e))
             except HTTPError, e:
-                 logging.error('HTTPError = ', e)
+                 logging.error('HTTPError = {}'.format(e))
             except Exception as e:
-                logging.info("Unexpected error:", e)
+                logging.info("Unexpected error: {}".format(e))
             logging.info("Slight delay of 5 seconds to not piss off any server")
-            time.sleep(5)
+            time.sleep(2)
     except URLError, e:
-        logging.info( 'No kittez. Got an error code:', e)
+        logging.info( 'No kittez. Got an error code:{}'.format(e))
     except HTTPError, e:
-         logging.error( 'HTTPError = ', e)
+         logging.error( 'HTTPError = {}'.format(e))
     except Exception as e:
-        logging.error( "Unexpected error:", e)
+        logging.error( "Unexpected error {}".format(e))
